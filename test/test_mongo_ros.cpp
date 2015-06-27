@@ -70,11 +70,11 @@ TEST(MongoRos, MongoRos)
   using mr::GT;
 
   // Clear existing data if any
-  mr::dropDatabase("my_db", "localhost", 27019, 60.0);
+  mr::dropDatabase("my_db", "localhost", 27017, 60.0);
   
   // Set up db
   mr::MessageCollection<gm::Pose> coll("my_db", "poses", "localhost",
-                                       27019, 60.0);
+                                       27017, 60.0);
 
   // Arrange to index on metadata fields 'x' and 'name'
   coll.ensureIndex("name");
