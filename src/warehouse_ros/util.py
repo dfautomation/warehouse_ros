@@ -35,6 +35,8 @@
 # Utilities
 
 import roslib
+import rospy
+import pymongo as pm
 
 def load_message_class(pkg, msg):
     """
@@ -45,3 +47,33 @@ def load_message_class(pkg, msg):
     m = __import__(pkg+'.msg')
     mod = getattr(m, 'msg')
     return getattr(mod, msg)
+
+
+def drop_database(db, db_host=None, db_port=None):
+    """
+    @param db: Name of database
+    @param db_hosts: The host where the db server is listening.
+    @param db_port: The port on which the db server is listening.
+
+    Drops the db.
+    The database host and port are set to the provided values if given.
+    If not, the ROS parameters warehouse_host and warehouse_port are used,
+    and these in turn default to localhost and 27017.
+    """
+
+    # Connect to mongo
+    host = db_host or rospy.get_param('warehouse_host', 'localhost')
+    port = db_port or rospy.get_param('warehouse_port', 27017)
+    conn = None
+    while not rospy.is_shutdown():
+        try:
+            conn = pm.Connection(host, port)
+            break
+        except:
+            rospy.loginfo( "Attempting to connect to mongodb @ {0}:{1}".\
+                    format(host, port))
+            rospy.sleep(2.0)
+
+    if conn:
+        conn.drop_database(db)
+

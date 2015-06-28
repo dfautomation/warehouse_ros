@@ -63,6 +63,9 @@ class TestMongoRospy(unittest.TestCase):
 
     def test_basic(self):
 
+        # Clear existing data if any
+        wr.drop_database("my_db")
+
         # Set up collection
         coll = wr.MessageCollection("my_db", "poses", gm.Pose)
         p1 = make_pose(24, 42, 0)
