@@ -109,7 +109,14 @@ public:
   /// Find message matching \a q and update its metadata using \a m
   /// In other words, overwrite keys in the message using \a m, but
   /// keep keys that don't occur in \a m.
-  void modifyMetadata (const Query& q, const Metadata& m);
+  void modifyMetadata (const Query& q, const Metadata& m,
+                       bool upsert = false, bool multi = false);
+
+  /// \brief Modify message
+  /// Find message matching \a q and update its message and metadata
+  /// using \a msg and \a metadata respectively.
+  void modifyMessage(const Query& q, const M& msg,
+                     const Metadata& metadata = Metadata(), bool upsert = false);
 
   /// \brief Count messages in collection
   unsigned count ();
@@ -126,6 +133,7 @@ private:
                    float timeout);
 
   const std::string ns_;
+  const std::string file_ns_;
   boost::shared_ptr<mongo::DBClientConnection> conn_;
   boost::shared_ptr<mongo::GridFS> gfs_;
   bool md5sum_matches_;

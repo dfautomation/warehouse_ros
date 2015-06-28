@@ -61,6 +61,7 @@ MessageCollection<M>::MessageCollection (const string& db,
                                          const unsigned db_port,
                                          const float timeout) :
   ns_(db+"."+coll),
+  file_ns_(db+".fs.files"),
   md5sum_matches_(true),
   insertion_pub_(nh_.advertise<std_msgs::String>("warehouse/"+db+"/"+coll+\
                                                  "/inserts", 100, true))
@@ -232,10 +233,9 @@ unsigned MessageCollection<M>::removeMessages (const mongo::Query& query)
 }
 
 template <class M>
-void MessageCollection<M>::modifyMetadata (const Query& q, const Metadata& m)
+void MessageCollection<M>::modifyMetadata (const Query& q, const Metadata& m,
+                                           bool upsert, bool multi)
 {
-  typename MessageWithMetadata<M>::ConstPtr orig = findOne(q, true);
-  
   mongo::BSONObjBuilder new_meta_builder;
 
   std::set<std::string> fields;
@@ -249,7 +249,41 @@ void MessageCollection<M>::modifyMetadata (const Query& q, const Metadata& m)
   }
 
   mongo::BSONObj new_meta = new_meta_builder.obj().copy();
-  conn_->update(ns_, q, new_meta);
+  conn_->update(ns_, q, new_meta, upsert, multi);
+}
+
+template <class M>
+void MessageCollection<M>::modifyMessage (const Query& q, const M& msg,
+                                          const Metadata& metadata, bool upsert)
+{
+  typename MessageWithMetadata<M>::ConstPtr orig = findOne(q, true);
+
+  // Get the original id and blob id
+  mongo::OID id, old_blob_id;
+  orig->metadata["_id"].Val(id);
+  orig->metadata["blob_id"].Val(old_blob_id);
+
+  // Serialize the message into a buffer
+  const size_t serial_size = ser::serializationLength(msg);
+  boost::shared_array<uint8_t> buffer(new uint8_t[serial_size]);
+  ser::OStream stream(buffer.get(), serial_size);
+  ser::serialize(stream, msg);
+  const char* data = (char*) buffer.get();
+
+  // Store in grid fs
+  mongo::BSONObj file_obj = gfs_->storeFile(data, serial_size, id.toString());
+
+  // Add blob id to metadata and update it in the message collection
+  Metadata new_metadata(metadata);
+  mongo::OID blob_id;
+  file_obj["_id"].Val(blob_id);
+  new_metadata.append(string("blob_id"), blob_id);
+  modifyMetadata(q, new_metadata, upsert);
+
+  // Remove old message from grid fs
+  conn_->update(file_ns_, Query("_id", old_blob_id),
+                BSON("$set" << BSON("filename" << "to_be_deleted")));
+  gfs_->removeFile("to_be_deleted");
 }
 
 template <class M>

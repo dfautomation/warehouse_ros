@@ -139,9 +139,20 @@ TEST(MongoRos, MongoRos)
   ROS_INFO("here");
   EXPECT_EQ(p1, *coll.findOne(q5, false));
 
-  // Check stored metadata
+  // Test update message
+  coll.modifyMessage(q5, p4, mr::Metadata("x", p4.position.x, "y", p4.position.y));
+  EXPECT_EQ(3u, coll.count());
+  EXPECT_EQ(p4, *coll.findOne(q5, false));
+  mr::Query q6("x", p4.position.x);
+  EXPECT_EQ(p4, *coll.findOne(q6, false));
+
+  // Check whether grid fs is consistent after update
   boost::shared_ptr<mongo::DBClientConnection> conn =
     mr::makeDbConnection(ros::NodeHandle());
+  mongo::GridFS gfs(*conn, "my_db");
+  EXPECT_EQ(3u, gfs.list()->itcount());
+
+  // Check stored metadata
   EXPECT_EQ("geometry_msgs/Pose", mr::messageType(*conn, "my_db", "poses"));
 }
 
