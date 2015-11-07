@@ -128,6 +128,15 @@ MessageCollection<M>& MessageCollection<M>::ensureIndex
 }
 
 template <class M>
+MessageCollection<M>& MessageCollection<M>::ensureIndex
+(const BSONObj& key, bool unique, const string& name, bool cache,
+ bool background, int v, int ttl)
+{
+  conn_->ensureIndex(ns_, key, unique, name, cache, background, v, ttl);
+  return *this;
+}
+
+template <class M>
 void MessageCollection<M>::insert
 (const M& msg, const Metadata& metadata)
 {

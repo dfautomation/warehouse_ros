@@ -104,6 +104,13 @@ public:
   /// \post Ensure that there's an index on the given field.
   /// Note that index on _id and creation_time are always created.
   MessageCollection& ensureIndex (const std::string& field);
+
+  /// \post Ensure that there's an index on the given field.
+  /// Allow the same set of parameters used in the mongodb library.
+  MessageCollection& ensureIndex (const BSONObj& key, bool unique = false,
+                                  const string& name = "", bool cache = true,
+                                  bool background = false, int v = -1,
+                                  int ttl = 0);
   
   /// \brief Modify metadata
   /// Find message matching \a q and update its metadata using \a m
