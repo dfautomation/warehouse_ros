@@ -64,7 +64,8 @@ public:
                   const std::string& ns,
                   const mongo::Query& query,
                   boost::shared_ptr<mongo::GridFS> gfs,
-                  bool metadata_only);
+                  bool metadata_only,
+                  int limit);
 
   /// \brief Copy constructor
   ResultIterator (const ResultIterator& rhs);

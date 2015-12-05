@@ -179,7 +179,8 @@ typename QueryResults<M>::range_t
 MessageCollection<M>::queryResults (const mongo::Query& query,
                                     const bool metadata_only,
                                     const string& sort_by,
-                                    const bool ascending) const
+                                    const bool ascending,
+                                    const int limit) const
 {
   if (!md5sum_matches_ && !metadata_only)
     throw Md5SumException("Can only query metadata.");
@@ -191,7 +192,7 @@ MessageCollection<M>::queryResults (const mongo::Query& query,
   if (sort_by.size() > 0)
     copy.sort(sort_by, ascending ? 1 : -1);
   return typename QueryResults<M>::range_t
-    (ResultIterator<M>(conn_, ns_, copy, gfs_, metadata_only),
+    (ResultIterator<M>(conn_, ns_, copy, gfs_, metadata_only, limit),
      ResultIterator<M>());
 }
 
@@ -201,10 +202,12 @@ vector <typename MessageWithMetadata<M>::ConstPtr>
 MessageCollection<M>::pullAllResults (const mongo::Query& query,
                                       const bool metadata_only,
                                       const string& sort_by,
-                                      const bool ascending) const
+                                      const bool ascending,
+                                      const int limit) const
 {  
   typename QueryResults<M>::range_t res = queryResults(query, metadata_only,
-                                                       sort_by, ascending);
+                                                       sort_by, ascending,
+                                                       limit);
   return vector<typename MessageWithMetadata<M>::ConstPtr>
     (res.first, res.second);
 }

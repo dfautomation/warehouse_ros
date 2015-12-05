@@ -83,13 +83,15 @@ public:
   /// (returned message objects will just be default constructed)
   typename QueryResults<M>::range_t
   queryResults (const mongo::Query& query, bool metadata_only = false,
-                const std::string& sort_by = "", bool ascending=true) const;
+                const std::string& sort_by = "", bool ascending=true,
+                const int limit = 0) const;
 
   /// \brief Convenience function that calls queryResult and
   /// puts the results into a vector
   std::vector<typename MessageWithMetadata<M>::ConstPtr >
   pullAllResults (const mongo::Query& query, bool metadata_only = false,
-                  const std::string& sort_by = "", bool ascending=true) const;
+                  const std::string& sort_by = "", bool ascending=true,
+                  const int limit = 0) const;
 
   
   /// \brief Convenience function that returns a single matching result

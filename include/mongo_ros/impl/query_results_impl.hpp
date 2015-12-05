@@ -49,9 +49,10 @@ ResultIterator<M>::ResultIterator
 (boost::shared_ptr<mongo::DBClientConnection> conn,
  const string& ns, const mongo::Query& query,
  boost::shared_ptr<mongo::GridFS> gfs,
- const bool metadata_only) :
+ const bool metadata_only,
+ const int limit) :
   metadata_only_(metadata_only),
-  cursor_(new Cursor(conn->query(ns, query))),
+  cursor_(new Cursor(conn->query(ns, query, limit))),
   gfs_(gfs)
 {
   if ((*cursor_)->more())
